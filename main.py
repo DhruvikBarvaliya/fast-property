@@ -62,6 +62,7 @@ async def root():
 
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
+    print("AAAAAAAAAAAAAAAAAAAAA")
     contents = await file.read()
     with open(f"{file.filename}", "wb") as f:  # Use "wb" mode for writing binary data
         f.write(contents)
