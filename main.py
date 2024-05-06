@@ -47,9 +47,9 @@ from fastapi import FastAPI, UploadFile, File
 import os
 from docx2pdf import convert
 from fastapi.responses import Response, FileResponse
-app = FastAPI()
-import base64
-import comtypes.client
+import subprocess
+app = FastAPI()  
+
 
 current_dir = os.path.dirname(__file__)
 
@@ -65,16 +65,9 @@ async def upload_file(file: UploadFile = File(...)):
     file_path = os.path.join(current_dir, file.filename)
     pdf_file_path = os.path.join(current_dir, "test.pdf")
     print(pdf_file_path)
-    wdFormatPDF = 17
-    # convert(file_path, pdf_file_path)
-    in_file = file_path
-    out_file = pdf_file_path
-    word = comtypes.client.CreateObject('Word.Application')
-    doc = word.Documents.Open(in_file)
-    doc.SaveAs(out_file, FileFormat=wdFormatPDF)
-    doc.Close()
-    word.Quit()
-    
+
+    subprocess.run(["unoconv", "-f", "pdf", "-o", pdf_file_path, file_path])
+    print("Conversion successful!")
     return FileResponse(pdf_file_path, filename="test.pdf", media_type="application/pdf")
 import uvicorn
 if __name__ == "__main__":
