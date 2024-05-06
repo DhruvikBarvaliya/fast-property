@@ -45,12 +45,10 @@
 
 from fastapi import FastAPI, UploadFile, File
 import os
-# from docx2pdf import 
-from msoffice2pdf import convert
+# from docx2pdf import convert
 from fastapi.responses import Response, FileResponse
-import subprocess
-app = FastAPI()  
-
+app = FastAPI()
+import base64
 
 current_dir = os.path.dirname(__file__)
 
@@ -66,11 +64,24 @@ async def upload_file(file: UploadFile = File(...)):
     file_path = os.path.join(current_dir, file.filename)
     pdf_file_path = os.path.join(current_dir, "test.pdf")
     print(pdf_file_path)
-    convert(file_path, pdf_file_path, soft=0)
+    # convert(file_path, pdf_file_path)
+    # with open(pdf_file_path, "rb") as f:
+    #     pdf_data = f.read()
+    # pdf_base64 = base64.b64encode(pdf_data).decode("utf-8")
+    # print(pdf_base64)
+    import os
+    from docx import Document
+    from subprocess import Popen, PIPE
+    doc = Document(file_path)
+    # Save the DOCX file as HTML
+    html_file = docx_file.replace('.docx', '.html')
+    doc.save(html_file)
+    # Convert HTML to PDF using libreoffice
+    libreoffice_cmd = ['libreoffice', '--headless', '--convert-to', 'pdf', html_file, '--outdir', os.path.dirname(pdf_file_path)]
+    libreoffice_process = Popen(libreoffice_cmd, stdout=PIPE, stderr=PIPE)
+    libreoffice_process.communicate()
+    # Remove the temporary HTML file
+    os.remove(html_file)
+    print(f"Conversion completed. PDF saved as {pdf_file_path}")
 
-    # subprocess.run(["unoconv", "-f", "pdf", "-o", pdf_file_path, file_path])
-    # print("Conversion successful!")
     return FileResponse(pdf_file_path, filename="test.pdf", media_type="application/pdf")
-import uvicorn
-if __name__ == "__main__":
-    uvicorn.run(app, host = "localhost", port = 8000)
