@@ -69,7 +69,6 @@ async def upload_file(file: UploadFile = File(...)):
     #     pdf_data = f.read()
     # pdf_base64 = base64.b64encode(pdf_data).decode("utf-8")
     # print(pdf_base64)
-    import os
     from docx import Document
     from subprocess import Popen, PIPE
     doc = Document(file_path)
