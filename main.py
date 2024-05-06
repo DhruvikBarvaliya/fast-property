@@ -47,6 +47,10 @@ from fastapi import FastAPI, UploadFile, File
 import os
 # from docx2pdf import convert
 from fastapi.responses import Response, FileResponse
+from docx import Document
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph
 app = FastAPI()
 import base64
 
@@ -61,26 +65,28 @@ async def upload_file(file: UploadFile = File(...)):
     contents = await file.read()
     with open(f"{file.filename}", "wb") as f:  # Use "wb" mode for writing binary data
         f.write(contents)
-    file_path = os.path.join(current_dir, file.filename)
-    pdf_file_path = os.path.join(current_dir, "test.pdf")
-    print(pdf_file_path)
+    input_file = os.path.join(current_dir, file.filename)
+    output_file = os.path.join(current_dir, "test.pdf")
+    print(output_file)
     # convert(file_path, pdf_file_path)
     # with open(pdf_file_path, "rb") as f:
     #     pdf_data = f.read()
     # pdf_base64 = base64.b64encode(pdf_data).decode("utf-8")
     # print(pdf_base64)
-    from docx import Document
-    from subprocess import Popen, PIPE
-    doc = Document(file_path)
-    # Save the DOCX file as HTML
-    html_file = file_path.replace('.docx', '.html')
-    doc.save(html_file)
-    # Convert HTML to PDF using libreoffice
-    libreoffice_cmd = ['libreoffice', '--headless', '--convert-to', 'pdf', html_file, '--outdir', os.path.dirname(pdf_file_path)]
-    libreoffice_process = Popen(libreoffice_cmd, stdout=PIPE, stderr=PIPE)
-    libreoffice_process.communicate()
-    # Remove the temporary HTML file
-    os.remove(html_file)
-    print(f"Conversion completed. PDF saved as {pdf_file_path}")
+    doc = Document(input_file)
 
-    return FileResponse(pdf_file_path, filename="test.pdf", media_type="application/pdf")
+    # Create a PDF
+    pdf = SimpleDocTemplate(output_file, pagesize=letter)
+    styles = pdf.styles
+    style = ParagraphStyle(name='Normal', fontName='Helvetica', fontSize=12)
+    styles.add(style)
+
+    # Extract text from .docx and add to PDF
+    for paragraph in doc.paragraphs:
+        text = paragraph.text
+        p = Paragraph(text, style)
+        pdf.build([p])
+
+    print("Conversion complete.")
+
+    return FileResponse(output_file, filename="test.pdf", media_type="application/pdf")
