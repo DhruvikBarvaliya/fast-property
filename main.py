@@ -50,7 +50,8 @@ from fastapi.responses import Response, FileResponse
 from docx import Document
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle
-from reportlab.platypus import SimpleDocTemplate, Paragraph
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
 app = FastAPI()
 import base64
 
@@ -78,15 +79,17 @@ async def upload_file(file: UploadFile = File(...)):
 
     # Create a PDF
     pdf = SimpleDocTemplate(output_file, pagesize=letter)
-    styles = pdf.styles
-    style = ParagraphStyle(name='Normal', fontName='Helvetica', fontSize=12)
-    styles.add(style)
+    styles = getSampleStyleSheet()
+    normal_style = styles["Normal"]
 
     # Extract text from .docx and add to PDF
+    elements = []
     for paragraph in doc.paragraphs:
         text = paragraph.text
-        p = Paragraph(text, style)
-        pdf.build([p])
+        p = Paragraph(text, normal_style)
+        elements.append(p)
+        elements.append(Spacer(1, 12))
+    pdf.build([p])
 
     print("Conversion complete.")
 
