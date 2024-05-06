@@ -73,7 +73,7 @@ async def upload_file(file: UploadFile = File(...)):
     from subprocess import Popen, PIPE
     doc = Document(file_path)
     # Save the DOCX file as HTML
-    html_file = docx_file.replace('.docx', '.html')
+    html_file = file_path.replace('.docx', '.html')
     doc.save(html_file)
     # Convert HTML to PDF using libreoffice
     libreoffice_cmd = ['libreoffice', '--headless', '--convert-to', 'pdf', html_file, '--outdir', os.path.dirname(pdf_file_path)]
