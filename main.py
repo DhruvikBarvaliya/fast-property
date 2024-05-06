@@ -45,7 +45,8 @@
 
 from fastapi import FastAPI, UploadFile, File
 import os
-from docx2pdf import convert
+# from docx2pdf import 
+from msoffice2pdf import convert
 from fastapi.responses import Response, FileResponse
 import subprocess
 app = FastAPI()  
@@ -65,9 +66,10 @@ async def upload_file(file: UploadFile = File(...)):
     file_path = os.path.join(current_dir, file.filename)
     pdf_file_path = os.path.join(current_dir, "test.pdf")
     print(pdf_file_path)
+    convert(file_path, pdf_file_path, soft=0)
 
-    subprocess.run(["unoconv", "-f", "pdf", "-o", pdf_file_path, file_path])
-    print("Conversion successful!")
+    # subprocess.run(["unoconv", "-f", "pdf", "-o", pdf_file_path, file_path])
+    # print("Conversion successful!")
     return FileResponse(pdf_file_path, filename="test.pdf", media_type="application/pdf")
 import uvicorn
 if __name__ == "__main__":
